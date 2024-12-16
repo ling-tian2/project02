@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" ...>
+  <bpmn:process id="Process_1" isExecutable="true">
+    <!-- 开始事件 -->
+    <bpmn:startEvent id="StartEvent_1" name="接收数据1" />
+
+    <!-- 接收任务，等待数据2 -->
+    <bpmn:receiveTask id="ReceiveTask_1" name="等待数据2" />
+    
+    <!-- 网关，用于条件判断 -->
+    <bpmn:exclusiveGateway id="ExclusiveGateway_1" name="是否收到数据2?" />
+
+    <!-- 定时器事件子流程 -->
+    <bpmn:subProcess id="SubProcess_1" name="15分钟计时">
+      <bpmn:startEvent id="StartEvent_2" />
+      <bpmn:intermediateCatchEvent id="TimerCatchEvent_1" name="15分钟后">
+        <bpmn:timerEventDefinition>
+          <bpmn:timeDuration>PT15M</bpmn:timeDuration>
+        </bpmn:timerEventDefinition>
+      </bpmn:intermediateCatchEvent>
+      <bpmn:endEvent id="EndEvent_2" />
+      <bpmn:sequenceFlow id="SequenceFlow_3" sourceRef="StartEvent_2" targetRef="TimerCatchEvent_1" />
+      <bpmn:sequenceFlow id="SequenceFlow_4" sourceRef="TimerCatchEvent_1" targetRef="EndEvent_2" />
+    </bpmn:subProcess>
+
+    <!-- 邮件发送任务 -->
+    <bpmn:serviceTask id="ServiceTask_1" name="发送提醒邮件" />
+
+    <!-- 结束事件 -->
+    <bpmn:endEvent id="EndEvent_1" name="正常结束" />
+    <bpmn:endEvent id="EndEvent_3" name="超时结束" />
+
+    <!-- 流程连线 -->
+    <bpmn:sequenceFlow id="SequenceFlow_1" sourceRef="StartEvent_1" targetRef="ReceiveTask_1" />
+    <bpmn:sequenceFlow id="SequenceFlow_2" sourceRef="ReceiveTask_1" targetRef="ExclusiveGateway_1" />
+    <bpmn:sequenceFlow id="SequenceFlow_5" sourceRef="ExclusiveGateway_1" targetRef="EndEvent_1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">收到了数据2</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_6" sourceRef="ExclusiveGateway_1" targetRef="SubProcess_1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">未收到数据2</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_7" sourceRef="SubProcess_1" targetRef="ServiceTask_1" />
+    <bpmn:sequenceFlow id="SequenceFlow_8" sourceRef="ServiceTask_1" targetRef="ReceiveTask_1" />
+  </bpmn:process>
+</bpmn:definitions>
