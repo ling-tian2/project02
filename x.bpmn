@@ -1,14 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" ...>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                 xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                 xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                 xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                 id="Definitions_1"
+                 targetNamespace="http://bpmn.io/schema/bpmn">
   <bpmn:process id="Process_1" isExecutable="true">
     <!-- 开始事件 -->
-    <bpmn:startEvent id="StartEvent_1" name="接收数据1" />
+    <bpmn:startEvent id="StartEvent_1" name="接收数据1">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
 
     <!-- 接收任务，等待数据2 -->
-    <bpmn:receiveTask id="ReceiveTask_1" name="等待数据2" />
-    
+    <bpmn:receiveTask id="ReceiveTask_1" name="等待数据2">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:receiveTask>
+
     <!-- 网关，用于条件判断 -->
-    <bpmn:exclusiveGateway id="ExclusiveGateway_1" name="是否收到数据2?" />
+    <bpmn:exclusiveGateway id="ExclusiveGateway_1" name="是否收到数据2?">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
 
     <!-- 定时器事件子流程 -->
     <bpmn:subProcess id="SubProcess_1" name="15分钟计时">
@@ -21,25 +35,41 @@
       <bpmn:endEvent id="EndEvent_2" />
       <bpmn:sequenceFlow id="SequenceFlow_3" sourceRef="StartEvent_2" targetRef="TimerCatchEvent_1" />
       <bpmn:sequenceFlow id="SequenceFlow_4" sourceRef="TimerCatchEvent_1" targetRef="EndEvent_2" />
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
     </bpmn:subProcess>
 
     <!-- 邮件发送任务 -->
-    <bpmn:serviceTask id="ServiceTask_1" name="发送提醒邮件" />
+    <bpmn:serviceTask id="ServiceTask_1" name="发送提醒邮件">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:serviceTask>
 
     <!-- 结束事件 -->
-    <bpmn:endEvent id="EndEvent_1" name="正常结束" />
-    <bpmn:endEvent id="EndEvent_3" name="超时结束" />
+    <bpmn:endEvent id="EndEvent_1" name="正常结束">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_3" name="超时结束">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+    </bpmn:endEvent>
 
     <!-- 流程连线 -->
-    <bpmn:sequenceFlow id="SequenceFlow_1" sourceRef="StartEvent_1" targetRef="ReceiveTask_1" />
-    <bpmn:sequenceFlow id="SequenceFlow_2" sourceRef="ReceiveTask_1" targetRef="ExclusiveGateway_1" />
-    <bpmn:sequenceFlow id="SequenceFlow_5" sourceRef="ExclusiveGateway_1" targetRef="EndEvent_1">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">收到了数据2</bpmn:conditionExpression>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="ReceiveTask_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="ReceiveTask_1" targetRef="ExclusiveGateway_1" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="ExclusiveGateway_1" targetRef="EndEvent_1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${receivedData2}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_6" sourceRef="ExclusiveGateway_1" targetRef="SubProcess_1">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">未收到数据2</bpmn:conditionExpression>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="ExclusiveGateway_1" targetRef="SubProcess_1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!receivedData2}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_7" sourceRef="SubProcess_1" targetRef="ServiceTask_1" />
-    <bpmn:sequenceFlow id="SequenceFlow_8" sourceRef="ServiceTask_1" targetRef="ReceiveTask_1" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="SubProcess_1" targetRef="ServiceTask_1" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="ServiceTask_1" targetRef="EndEvent_3" />
   </bpmn:process>
+
+  <!-- Diagram information -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+      <!-- Diagram elements go here -->
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
 </bpmn:definitions>
