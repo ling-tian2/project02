@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                 xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                 xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                 xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                 id="Definitions_1"
+                 targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_1" isExecutable="true">
+    <!-- 开始事件 -->
+    <bpmn:startEvent id="StartEvent_1" name="接收数据1">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <!-- 接收任务，等待数据2 -->
+    <bpmn:receiveTask id="ReceiveTask_1" name="等待数据2">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:receiveTask>
+
+    <!-- 网关，用于条件判断 -->
+    <bpmn:exclusiveGateway id="ExclusiveGateway_1" name="是否收到数据2?">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <!-- 定时器捕获中间事件 -->
+    <bpmn:intermediateCatchEvent id="TimerCatchEvent_1" name="15分钟后">
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDuration>PT15M</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:intermediateCatchEvent>
+
+    <!-- 邮件发送任务 -->
+    <bpmn:serviceTask id="ServiceTask_1" name="发送提醒邮件">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <!-- 结束事件 -->
+    <bpmn:endEvent id="EndEvent_1" name="正常结束">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <!-- 流程连线 -->
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="ReceiveTask_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="ReceiveTask_1" targetRef="ExclusiveGateway_1" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="ExclusiveGateway_1" targetRef="EndEvent_1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${receivedData2}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="ExclusiveGateway_1" targetRef="TimerCatchEvent_1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!receivedData2}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="TimerCatchEvent_1" targetRef="ServiceTask_1" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="ServiceTask_1" targetRef="ReceiveTask_1" />
+
+    <!-- Diagram information -->
+    <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+      <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+        <!-- Shapes -->
+        <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+          <dc:Bounds x="100" y="100" width="36" height="36" />
+        </bpmndi:BPMNShape>
+        <bpmndi:BPMNShape id="ReceiveTask_1_di" bpmnElement="ReceiveTask_1">
+          <dc:Bounds x="200" y="82" width="100" height="60" />
+        </bpmndi:BPMNShape>
+        <bpmndi:BPMNShape id="ExclusiveGateway_1_di" bpmnElement="ExclusiveGateway_1">
+          <dc:Bounds x="350" y="92" width="50" height="50" />
+        </bpmndi:BPMNShape>
+        <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+          <dc:Bounds x="500" y="100" width="36" height="36" />
+        </bpmndi:BPMNShape>
+        <bpmndi:BPMNShape id="TimerCatchEvent_1_di" bpmnElement="TimerCatchEvent_1">
+          <dc:Bounds x="400" y="200" width="36" height="36" />
+        </bpmndi:BPMNShape>
+        <bpmndi:BPMNShape id="ServiceTask_1_di" bpmnElement="ServiceTask_1">
+          <dc:Bounds x="550" y="182" width="100" height="60" />
+        </bpmndi:BPMNShape>
+        <!-- Edges -->
+        <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+          <di:waypoint x="136" y="118" />
+          <di:waypoint x="200" y="112" />
+        </bpmndi:BPMNEdge>
+        <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+          <di:waypoint x="300" y="112" />
+          <di:waypoint x="350" y="117" />
+        </bpmndi:BPMNEdge>
+        <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+          <di:waypoint x="400" y="117" />
+          <di:waypoint x="500" y="118" />
+        </bpmndi:BPMNEdge>
+        <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+          <di:waypoint x="375" y="117" />
+          <di:waypoint x="400" y="200" />
+        </bpmndi:BPMNEdge>
+        <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+          <di:waypoint x="436" y="218" />
+          <di:waypoint x="550" y="212" />
+        </bpmndi:BPMNEdge>
+        <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7">
+          <di:waypoint x="650" y="212" />
+          <di:waypoint x="250" y="112" />
+        </bpmndi:BPMNEdge>
+      </bpmndi:BPMNPlane>
+    </bpmndi:BPMNDiagram>
+  </bpmn:process>
+</bpmn:definitions>
